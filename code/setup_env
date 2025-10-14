@@ -1,0 +1,97 @@
+#!/bin/false perl
+
+### Ce programme retourne les constantes du systeme ainsi que les chemins
+### vers les executables. 
+
+### Sur Linux, voir commentaire de la variable MIPS_PREFIX_LINUX ci-dessous. 
+
+
+### FORMAT (each must be a word (no spaces)):
+### 1: AS
+### 2: CPP
+### 3: HOST 		(replace spaces by '||')
+### 4: LDFLAGS 		(replace spaces by '||')
+### 5: MIPS_PREFIX
+### 6: LOCAL_ARCH
+ 
+use strict;
+
+### Nachos utilise un trans-compilateur MIPS pour compiler les programmes
+### usager du systeme. La variable MIPS_PREFIX_* contient le chemin vers
+### la version MIPS de gcc, as et ld. Sur Linux, vous devez creer le
+### repertoire /usr/local/mips/ et placer les executables 
+### mips-linux-gcc,as,ld dans ce repertoire.
+
+### Trans-compilateur sur Sun.
+my $MIPS_PREFIX_SUN = "/opt/mips/decstation-ultrix/bin/";
+
+### Trans-compilateur sur Linux. Dans le Makefile, on concatene MIPS_PREFIX
+### et "gcc". Le chemin sera donc /usr/local/mips/mips-linux-gcc.
+my $MIPS_PREFIX_LINUX = "/usr/local/bin/mips-linux-";
+
+my $AS_LOC_1 = "/opt/gnu/bin/as.orig";
+my $AS_LOC_2 = "/opt/gnu/bin/as-ift518";
+my $CPP_LOC_1 = "/usr/ccs/lib/cpp";
+
+sub main()
+	{
+	my $as;
+	my $cpp;
+	my $host;
+	my $ldflags;
+	my $mips_prefix;
+	my $local_arch;
+	
+	my $uname = `uname`;
+	chomp($uname);
+	
+	### Setup HOST, LDFLAGS, MIPS_PREFIX and LOCAL_ARCH.
+	if($uname eq "Linux")
+		{
+		$host = "-DHOST_i386||-DHOST_SVR4";
+		$ldflags = "-lnsl";
+		$mips_prefix = $MIPS_PREFIX_LINUX;
+		$local_arch = "Linux";
+		}
+	
+	else
+		{
+		$host = "-DHOST_SPARC||-DHOST_IS_BIG_ENDIAN||-DHOST_SVR4||-DHOST_SunOS5";
+		$ldflags = "-lsocket||-lnsl";
+		$mips_prefix = $MIPS_PREFIX_SUN;
+		$local_arch = "Sun";
+		}
+		
+	### Carouge, arlequin et sirius ont tous leur propre emplacement pour "as".
+	if(-f $AS_LOC_1)
+		{
+		$as = $AS_LOC_1;
+		}
+	
+	elsif(-f $AS_LOC_2)
+		{
+		$as = $AS_LOC_2;
+		}
+	
+	else
+		{
+		$as = "as";
+		}
+	
+	### Trouver cpp.
+	if(-f $CPP_LOC_1)
+		{
+		$cpp = $CPP_LOC_1;
+		}
+	
+	else
+		{
+		$cpp = "cpp";
+		}
+	
+	### Retourner ce qu'on a trouve.
+	print("$as $cpp $host $ldflags $mips_prefix $local_arch\n");
+	exit(0);
+	}
+	
+main();
