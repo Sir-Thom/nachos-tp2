@@ -108,7 +108,8 @@ class Thread {
     void setStatus(ThreadStatus st) { status = st; }
     char* getName() { return (name); }
     void Print() { printf("%s, ", name); }
-	
+	  void SetCurrentDirectory(int sector) { currentDirectorySector = sector; }
+    int GetCurrentDirectory() { return currentDirectorySector; }
 	#ifdef FILESYSzz
 	
 	//IFT320: modifications pour partie C ici.
@@ -123,6 +124,7 @@ class Thread {
 					// (If NULL, don't deallocate stack)
     ThreadStatus status;		// ready, running or blocked
     char* name;
+    int currentDirectorySector;
 
     void StackAllocate(VoidFunctionPtr func, int arg);
     					// Allocate a stack for thread.

@@ -91,9 +91,17 @@ class FileSystem {
 //IFT320: DEFINITION DE FILESYSTEM UTILISEE POUR LE TP2
 
 //IFT320: la poignee de fichier est presentement un OpenFile. Devrait changer (Partie B).
-#define FileHandle OpenFile *
-
-
+//#define FileHandle OpenFile *
+#define MAX_OPEN_FILES 10
+#define FileHandle int
+#define INVALID_FILE_HANDLE -1
+struct OpenFileEntry {
+    bool inUse;             // Si l'entrée est utilisée
+    OpenFile* openFile;     // Pointeur vers le fichier ouvert
+    int sector;             // Secteur du fichier sur le disque
+    char filename[32];      // Nom du fichier (pour débogage)
+    int currentPosition;    // Position courante (optionnel)
+};
 class FileSystem {
   public:
     FileSystem(bool format);		// Initialize the file system.
@@ -126,7 +134,9 @@ class FileSystem {
 	void Close (FileHandle file);
 	void CloseAll();
 	void TouchOpenedFiles(char * modif);
-	
+	void SetCurrentDirectory(int sector);
+    int GetCurrentDirectory();
+    int GetRootDirectory() { return currentDirectorySector; }
 
   private:
 	OpenFile* freeMapFile;		// Bit map of free disk blocks,
@@ -134,6 +144,16 @@ class FileSystem {
 	
 	OpenFile* directoryFile;		// "Root" directory -- list of 
 					// file names, represented as a file
+					int currentDirectorySector;
+					// IFT320: Table des fichiers ouverts
+    OpenFileEntry openFilesTable[MAX_OPEN_FILES];
+    
+    // IFT320: Méthodes privées pour gérer la table
+    FileHandle FindFreeSlot();
+    bool IsValidHandle(FileHandle handle);
+    void InitializeOpenFilesTable();
+
+
 };
 
 

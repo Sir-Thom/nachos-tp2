@@ -26,7 +26,15 @@
 #include "directory.h"
 
 
+EntryType
+Directory::GetEntryType(char *name)
+{
+    int i = FindIndex(name);
 
+    if (i != -1)
+	return table[i].type;
+    return FILE_TYPE;
+}
 
 //----------------------------------------------------------------------
 // Directory::Directory
@@ -42,8 +50,12 @@ Directory::Directory(int size)
 {
     table = new DirectoryEntry[size];
     tableSize = size;
-    for (int i = 0; i < tableSize; i++)
-	table[i].inUse = FALSE;
+    for (int i = 0; i < tableSize; i++) {
+        table[i].inUse = FALSE;
+        table[i].sector = -1;
+        memset(table[i].name, 0, FileNameMaxLen + 1); // Initialiser à zéro
+        table[i].type = FILE_TYPE;
+    }
 }
 
 //----------------------------------------------------------------------
@@ -132,19 +144,18 @@ Directory::Find(char *name)
 
 bool
 Directory::Add(char *name, int newSector, EntryType type)
-{ 
-    if (FindIndex(name) != -1)
-	return FALSE;
+{ if (FindIndex(name) != -1)
+        return FALSE;
 
     for (int i = 0; i < tableSize; i++)
         if (!table[i].inUse) {
             table[i].inUse = TRUE;
-            strncpy(table[i].name, name, FileNameMaxLen); 
-            table[i].sector = newSector;	
-            // Assigner le type de la nouvelle entrée
-            table[i].type = type;		
-        return TRUE;
-	}
+            strncpy(table[i].name, name, FileNameMaxLen);
+            table[i].name[FileNameMaxLen] = '\0';
+            table[i].sector = newSector;
+            table[i].type = type;
+            return TRUE;
+        }
     return FALSE;	// no space.  Fix when we have extensible files.
 }
 
@@ -161,12 +172,12 @@ Directory::Add(char *name, int newSector, EntryType type)
 bool
 Directory::Remove(char *name)
 { 
-    int i = FindIndex(name);
+  int i = FindIndex(name);
 
     if (i == -1)
 	return FALSE; 		// name not in directory
     table[i].inUse = FALSE;
-    return TRUE;	
+    return TRUE;
 }
 
 //----------------------------------------------------------------------
@@ -177,11 +188,17 @@ Directory::Remove(char *name)
 void
 Directory::List()
 {
-	printf("--Directory contents--\n\n");
-	for (int i = 0; i < tableSize; i++)
-	if (table[i].inUse)
-	    printf("%s\n", table[i].name);
-	printf("\n----- End of list ----\n\n");
+	 printf("--Directory contents--\n\n");
+    for (int i = 0; i < tableSize; i++) {
+        if (table[i].inUse) {
+            if (table[i].type == DIR_TYPE) {
+                printf("%s/ (dir)\n", table[i].name);
+            } else {
+                printf("%s\n", table[i].name);
+            }
+        }
+    }
+    printf("\n----- End of list ----\n\n");
 }
 
 //----------------------------------------------------------------------
@@ -198,7 +215,9 @@ Directory::Print()
     printf("Directory contents:\n");
     for (int i = 0; i < tableSize; i++)
 	if (table[i].inUse) {
-	    printf("Name: %s, Sector: %d\n", table[i].name, table[i].sector);
+	    printf("Name: %s, Sector: %d, Type: %s\n", 
+                   table[i].name, table[i].sector,
+                   table[i].type == DIR_TYPE ? "Directory" : "File");
 	    hdr->FetchFrom(table[i].sector);
 	    hdr->Print();
 	}

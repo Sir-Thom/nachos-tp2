@@ -29,7 +29,8 @@
 // Internal data structures kept public so that Directory operations can
 // access them directly.
 
-enum EntryType { FILE_ENTRY, DIR_ENTRY };
+enum EntryType { FILE_TYPE, DIR_TYPE };
+
 
 class DirectoryEntry {
   public:    
@@ -79,6 +80,8 @@ bool IsEmpty();   // pour tester si un répertoire est vide
     void Print();			// Verbose print of the contents
 					//  of the directory -- all the file
 					//  names and their contents.	
+          EntryType
+Directory::GetEntryType(char *name);
 
   private:
     int tableSize;			// Number of directory entries

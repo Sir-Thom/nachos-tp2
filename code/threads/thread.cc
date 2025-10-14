@@ -34,6 +34,8 @@
 
 Thread::Thread(char* threadName)
 {
+    currentDirectorySector = -1;  // Non initialisé
+
     name = threadName;
     stackTop = NULL;
     stack = NULL;
@@ -90,6 +92,10 @@ Thread::Fork(VoidFunctionPtr func, int arg)
 {
     DEBUG('t', "Forking thread \"%s\" with func = 0x%x, arg = %d\n",
 	  name, (int) func, arg);
+     // IFT320: Hériter du répertoire courant du parent
+    if (currentThread != NULL) {
+        this->currentDirectorySector = currentThread->currentDirectorySector;
+    }
     
     StackAllocate(func, arg);
 
